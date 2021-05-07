@@ -1,11 +1,9 @@
 import numpy as np
 from random import *
 from scipy import signal
-import time
-#from matplotlib import pyplot as plt
 from tkinter import *
 
-size = 20
+size = 100
 
 cmpV = np.ones((1,3))
 cmpV[0,1] = 0
@@ -49,6 +47,9 @@ class Maze():
         self.colorCode = dict()
         self.colorCode[-1] = "black"
         for i in range((self.size*2+1)**2):
+            self.colorCode[i] = "#"+"%06x"%randint(0, 0xFFFFFF)
+        while self.colorCode[0] == "#ffff00":
+            #Évite le jaune pur pour le garder pour le solveur 
             self.colorCode[i] = "#"+"%06x"%randint(0, 0xFFFFFF)
         
         self.genPlein()
@@ -169,17 +170,3 @@ class Maze():
 
 
 map1 = Maze(size)
-#map1.getFenetre().mainloop()
-
-"""
-
-
-#map1[map==map[1,0]] = 0
-
-
-
-plt.imshow(map1.getMap())
-plt.show()
-
-print(map1)
-"""
