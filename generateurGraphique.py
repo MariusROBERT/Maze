@@ -3,7 +3,7 @@ from random import *
 from scipy import signal
 from tkinter import *
 
-size = 100
+size = 10
 
 cmpV = np.ones((1,3))
 cmpV[0,1] = 0
@@ -25,13 +25,30 @@ class Maze():
 
         #Entrée et Sortie
         self.map[1,1] = 0
-        self.map[1,0] = self.map[1,1]
+        self.map[1,0] = 0
         self.map[self.size*2-1, self.size*2] = self.map[self.size*2-1,self.size*2-1]
 
         #Trouve tout les murs
         self.ligne0, self.colonne0 = np.where(self.map == -1)
 
         #Fenêtre
+        self.initFenetre()
+
+        self.mapAffichage = dict()  
+        #Dictionnaire pour stocker cases graphiques avec leur x, y
+        self.colorCode = dict()
+        self.colorCode[-1] = "#000000"  #Couleur des murs
+        for i in range((self.size*2+1)**2):
+            self.colorCode[i] = "#"+"%06x"%randint(0, 0xFFFFFF)
+
+        while self.colorCode[0] == "#ffff00":
+            #Évite le jaune pur pour le garder pour le solveur 
+            self.colorCode[0] = "#"+"%06x"%randint(0, 0xFFFFFF)
+        self.genPlein()
+        self.map[self.map==self.map[1,0]] = 0
+
+    def initFenetre(self):
+        #Création de la fenêtre et du canvas
         self.Fenetre = Tk()
         self.Fenetre.title("Maze Generator by Marius")
 
@@ -42,19 +59,8 @@ class Maze():
 
         self.grilleJeu.pack()
 
-        self.mapAffichage = dict()  
-        #Dictionnaire pour stocker cases graphiques avec leur x, y
-        self.colorCode = dict()
-        self.colorCode[-1] = "black"
-        for i in range((self.size*2+1)**2):
-            self.colorCode[i] = "#"+"%06x"%randint(0, 0xFFFFFF)
-        while self.colorCode[0] == "#ffff00":
-            #Évite le jaune pur pour le garder pour le solveur 
-            self.colorCode[i] = "#"+"%06x"%randint(0, 0xFFFFFF)
-        
-        self.genPlein()
-        #self.map[self.map==self.map[1,0]] = 0
-
+    def fenetreMainloop(self):
+        self.Fenetre.mainloop()
 
     def initAffichage(self):
         #Crée grille de base avec couleur
@@ -65,7 +71,7 @@ class Maze():
                                                                             (600/(self.size*2+1))*x,
                                                                             (600/(self.size*2+1))*(y+1),
                                                                             (600/(self.size*2+1))*(x+1),
-                                                                            fill=self.colorCode[self.map[y, x]],
+                                                                            fill=self.colorCode[self.map[x, y]],
                                                                             width=0,
                                                                             tags=(x, y))
 
@@ -73,8 +79,15 @@ class Maze():
         #Check chaque case et met sa couleur à jour (à optimiser pour changer que les cases qui changent)
         for x in range(self.size*2+1):
             for y in range(self.size*2+1):
-                self.grilleJeu.itemconfig(self.grilleJeu.find_withtag(self.mapAffichage[(x, y)])[0], fill=self.colorCode[self.map[x, y]])          
+                self.grilleJeu.itemconfig(self.grilleJeu.find_withtag(self.mapAffichage[(x, y)])[0],
+                                                                      fill=self.colorCode[self.map[x, y]])
         self.Fenetre.update()
+
+    def getColorCode(self):
+        return self.colorCode
+
+    def setColorCode(self, code):
+        self.colorCode = code
 
     def getMap(self):
         return self.map
@@ -126,8 +139,13 @@ class Maze():
     def casseV(self, nbr):
         #Additionne puis prend la moitié des 2 nombres de chaque côté du mur et on compare à la case de gauche, si c'est différent on casse le mur
         if signal.convolve2d(self.map, cmpV, mode="same")[self.ligne0[nbr],self.colonne0[nbr]]/2 != self.map[self.ligne0[nbr],self.colonne0[nbr]-1]:
-            self.map[self.ligne0[nbr], self.colonne0[nbr]] = self.map[self.ligne0[nbr], self.colonne0[nbr]-1]
-            self.map = np.where(self.map==self.map[self.ligne0[nbr], self.colonne0[nbr]+1], self.map[self.ligne0[nbr], self.colonne0[nbr]-1], self.map)
+            self.map[self.ligne0[nbr],
+                        self.colonne0[nbr]] = self.map[self.ligne0[nbr],
+                        self.colonne0[nbr]-1]
+
+            self.map = np.where(self.map==self.map[self.ligne0[nbr], self.colonne0[nbr]+1],
+                                self.map[self.ligne0[nbr], self.colonne0[nbr]-1],
+                                self.map)
             return True
         else:
             return False
@@ -136,8 +154,13 @@ class Maze():
     def casseH(self,nbr):
         #Additionne puis prend la moitié des 2 nombres de chaque côté du mur et on compare à la case du dessus, si c'est différent on casse le mur
         if signal.convolve2d(self.map, cmpH, mode="same")[self.ligne0[nbr],self.colonne0[nbr]]/2 != self.map[self.ligne0[nbr]-1,self.colonne0[nbr]]:
-            self.map[self.ligne0[nbr], self.colonne0[nbr]] = self.map[self.ligne0[nbr]-1, self.colonne0[nbr]]
-            self.map = np.where(self.map==self.map[self.ligne0[nbr]+1, self.colonne0[nbr]], self.map[self.ligne0[nbr]-1, self.colonne0[nbr]], self.map)
+            self.map[self.ligne0[nbr],
+                        self.colonne0[nbr]] = self.map[self.ligne0[nbr]-1,
+                        self.colonne0[nbr]]
+
+            self.map = np.where(self.map==self.map[self.ligne0[nbr]+1, self.colonne0[nbr]],
+                                self.map[self.ligne0[nbr]-1, self.colonne0[nbr]],
+                                self.map)
             return True
         else:
             return False
@@ -162,11 +185,27 @@ class Maze():
             if self.cassage():
                 #Si un mur a été cassé, on update l'affichage
                 self.updateAffichage()
-        self.Fenetre.mainloop()              
+        #self.Fenetre.mainloop()              
         
 
 
 #===================================================#
 
 
+"""
 map1 = Maze(size)
+
+Fenetre = Tk()
+b = Canvas(Fenetre)
+b.pack()
+#a = b.create_rectangle(0, 0, 300, 300, fill="black")
+j=0
+
+for i in range(0x000000,0xFFFFFF):
+    #b.itemconfig(a, fill="#"+"%06x"%(i))
+    #a["fill"]="#"+"%06x"%(i)
+    b.create_rectangle(0+j*5, 0, 5, 100, fill="#"+"%06x"%(i))
+    j+=1
+    time.sleep(0.0001)
+    Fenetre.update()
+"""
