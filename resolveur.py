@@ -6,13 +6,9 @@ fullpath = os.path.abspath(__file__)
 os.chdir(os.path.dirname(fullpath))
 from generateur2 import Maze
 
-size = 75
+size = 25
 compteur = 1
 var2 = True
-
-cmp = np.arange(0,9)
-cmp = cmp%2
-cmp.reshape(3,3)
 
 map2 = Maze(size)
 map2.setCase(size*2-1, size*2, 1)
@@ -28,12 +24,10 @@ while len(map2.get0()[0]) != 0:
                 if map2.getMap()[i-1,j]>0 or map2.getMap()[i+1,j]>0 or map2.getMap()[i,j-1]>0 or map2.getMap()[i,j+1]>0:
                     temp[i,j] = compteur
 
-    if map2.getMap()[1,0]!=0 and var2:
-        compteur2 = compteur-1
-        var2 = False
-
     map2.setMap(np.copy(temp))
+
 print("Calcul des chemins généré en {}s".format(time.time() - debut)) 
+compteur2 = map2.getMap()[1,0]
 
 plt.imshow(map2.getMap())
 plt.show()
@@ -45,7 +39,7 @@ map2.setCase(posX, posY, size*10)
 
 debut = time.time()
 
-print("Distance entre le début et la fin : ".format(compteur2))
+print("Distance entre le début et la fin : " + str(compteur2))
 
 while map2.getMap()[size*2-1, size*2] != size*10:
     if map2.getMap()[posX-1, posY] == compteur2-1:
